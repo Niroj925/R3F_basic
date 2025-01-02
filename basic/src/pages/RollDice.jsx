@@ -1,51 +1,62 @@
-import React, { useState, useRef } from "react";
-import { Canvas, useLoader } from "@react-three/fiber";
+import React, { useState, useRef, useEffect } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Environment, OrbitControls } from "@react-three/drei";
+import * as THREE from "three";
 import styles from "./role.module.css";
 
-function RollDice() {
+function Dice({ onRollComplete }) {
+  const diceRef = useRef();
   const gltf = useLoader(GLTFLoader, "dicered.glb");
-  const [rotationSpeed, setRotationSpeed] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
-  const lastMousePosition = useRef({ x: 0, y: 0 });
-  const [autoRotateDirection, setAutoRotateDirection] = useState(1); // 1 for clockwise, -1 for counterclockwise
+  const [time, setTime] = useState(0);
+  const [isBouncing, setIsBouncing] = useState(true); // New state to track bouncing
 
-  const handleRoll = () => {
+  const startRoll = () => {
     if (isRolling) return;
     setIsRolling(true);
-    setRotationSpeed(200 * autoRotateDirection); // Apply direction to speed
-
-    let slowdownInterval = setInterval(() => {
-      setRotationSpeed((prev) => {
-        if (Math.abs(prev) <= 50) {
-          clearInterval(slowdownInterval);
-          setIsRolling(false);
-          setRotationSpeed(0);
-          return 0;
-        }
-        return prev * 0.9;
-      });
-    }, 100);
+    setTime(0); // Reset time for new roll
+    setIsBouncing(true); // Reset bounce state
   };
 
-  const handlePointerMove = (event) => {
-    const directionX = event.clientX - lastMousePosition.current.x;
-    const directionY = event.clientY - lastMousePosition.current.y;
+  useFrame((state, delta) => {
+    if (isRolling && diceRef.current) {
+      setTime((prev) => prev + delta); // Increment time for animation
 
-    // Determine rotation direction based on the last movement
-    if (Math.abs(directionX) > Math.abs(directionY)) {
-      setAutoRotateDirection(directionX > 0 ? 1 : -1); // Right: clockwise, Left: counterclockwise
-    } else {
-      setAutoRotateDirection(directionY > 0 ? 1 : -1); // Down: clockwise, Up: counterclockwise
+      // Rotation logic
+      const rotationSpeed = Math.max(0, 1500 * Math.exp(-time * 1.5)); // Slower decay for more rotation
+      diceRef.current.rotation.x += rotationSpeed * delta * 0.03; // Larger rotation for more visible rotation
+      diceRef.current.rotation.y += rotationSpeed * delta * 0.03;
+
+      // Up-down movement logic (only when still bouncing)
+      if (isBouncing) {
+        const bounceHeight = Math.sin(time * 4) * 0.1; // Reduce amplitude and increase frequency
+        diceRef.current.position.y = 1.5 + bounceHeight;
+      }
+if(rotationSpeed<200){
+  setIsBouncing(false);
+}
+      // Stop rolling and bouncing when speed is low
+      if (rotationSpeed < 1) {
+        setIsRolling(false);
+        onRollComplete(); // Notify when roll is complete
+      }
     }
+  });
 
-    // Update last mouse position
-    lastMousePosition.current = { x: event.clientX, y: event.clientY };
-  };
+  return (
+    <primitive
+      ref={diceRef}
+      object={gltf.scene}
+      position={[0, 1.5, 0]}
+      onPointerLeave={startRoll} // Trigger roll on pointer leave
+    />
+  );
+}
 
-  const handlePointerLeave = () => {
-    handleRoll(); // Start rolling when the pointer leaves
+function RollDice() {
+  const handleRollComplete = () => {
+    console.log("Roll complete!");
   };
 
   return (
@@ -57,15 +68,8 @@ function RollDice() {
         <Canvas camera={{ position: [-2.5, 0.2, 1] }}>
           <Environment files="wbi1.jpg" background backgroundBlurriness={0.5} />
           <directionalLight position={[3.3, 1.0, 4.4]} intensity={5} />
-          <primitive
-            object={gltf.scene}
-            position={[0, 1.5, 0]}
-            onPointerMove={handlePointerMove} // Track mouse movement
-            onPointerLeave={handlePointerLeave} // Trigger roll on leave
-          />
+          <Dice onRollComplete={handleRollComplete} />
           <OrbitControls
-            autoRotate
-            autoRotateSpeed={rotationSpeed}
             target={[0, 1.5, 0]}
             enablePan={false}
             enableZoom={false}
@@ -75,9 +79,6 @@ function RollDice() {
             maxPolarAngle={Math.PI}
           />
         </Canvas>
-      </div>
-      <div className={styles.btnContainer}>
-        <button onClick={handleRoll}>Roll</button>
       </div>
     </div>
   );
