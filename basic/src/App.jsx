@@ -8,6 +8,7 @@ import Loader from "./pages/useLoader";
 import Gltf from "./pages/GltFloader";
 import Env from "./pages/Environment";
 import AdvanceGltf from "./pages/UseGltf";
+import RollDice from "./pages/RollDice";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
     <Route path="/gltf" element={<Gltf/>} />
     <Route path="/env" element={<Env/>} />
     <Route path="/agltf" element={< AdvanceGltf/>} />
-   
+    <Route path="/dice" element={<RollDice/>} />
   </Routes>
     </BrowserRouter>
   )

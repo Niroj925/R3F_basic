@@ -1,0 +1,49 @@
+/* General container styling */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff; /* Optional for visibility */
+  /* height: 100vh; */
+  /* width: 100%; */
+}
+
+/* Heading styling */
+.heading {
+  margin-bottom: 20px; /* Add space below the heading */
+  text-align: center; /* Center text inside the heading */
+}
+
+.heading h1 {
+  color: #333; /* Styling for the heading text */
+  font-size: 2rem; /* Adjust font size */
+}
+
+/* Board container styling */
+.boardContainer {
+  display: flex;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  background-color: #ffffff; /* Background color for visibility */
+  width: 400px; /* Fixed width */
+  height: 900px; /* Fixed height */
+  border: 2px solid #ccc; /* Optional border for clarity */
+  border-radius: 10px; /* Rounded corners */
+  margin: 50px;
+}
+
+.btnContainer{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+}
+
+.btnContainer button{
+  margin: 10px;
+  background-color: #333;
+  color: white;
+  cursor: pointer;
+}
+
