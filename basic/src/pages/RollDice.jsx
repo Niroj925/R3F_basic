@@ -1,24 +1,36 @@
-import React, { useState } from "react";
-import styles from "./role.module.css";
+import React, { useEffect, useState } from "react";
 import { Canvas, useLoader } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Environment, OrbitControls } from "@react-three/drei";
+import styles from "./role.module.css";
 
 function RollDice() {
   const gltf = useLoader(GLTFLoader, "rubik.glb");
-  const [isRotate,setIsRotate]=useState(true);
+  const [rotationSpeed, setRotationSpeed] = useState(0); 
+  const [isRolling, setIsRolling] = useState(false); 
 
-  const hanldeRoll=()=>{
+  const handleRoll = () => {
+    if (isRolling) return; 
+    setIsRolling(true);
+    setRotationSpeed(200); 
 
-  }
+    let slowdownInterval = setInterval(() => {
+      setRotationSpeed((prev) => {
+        if (prev <= 0.5) {
+          clearInterval(slowdownInterval); 
+          setIsRolling(false);
+          setRotationSpeed(0); 
+          return 0;
+        }
+        return prev * 0.9; 
+      });
+    }, 100); 
+  };
 
-  const toggleRotate=()=>{
-  setIsRotate(!isRotate)
-  }
   return (
     <div className={styles.container}>
       <div className={styles.heading}>
-        <h1>Let's role the cube</h1>
+        <h1>Let's roll the cube</h1>
       </div>
       <div className={styles.boardContainer}>
         <Canvas camera={{ position: [-2.5, 0.2, 1] }}>
@@ -26,8 +38,8 @@ function RollDice() {
           <directionalLight position={[3.3, 1.0, 4.4]} intensity={5} />
           <primitive object={gltf.scene} position={[0, 1, 0]} />
           <OrbitControls
-            autoRotate={isRotate}
-            autoRotateSpeed={20}
+            autoRotate
+            autoRotateSpeed={rotationSpeed}
             target={[0, 1.5, 0]}
             enablePan={false}
             enableZoom={false}
@@ -39,8 +51,7 @@ function RollDice() {
         </Canvas>
       </div>
       <div className={styles.btnContainer}>
-        <button onClick={hanldeRoll} >Roll</button>
-        <button onClick={toggleRotate} >Toggle Rotate</button>
+        <button onClick={handleRoll}>Roll</button>
       </div>
     </div>
   );
