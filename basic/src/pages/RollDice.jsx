@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Environment, OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
 import styles from "./role.module.css";
 
 function Dice({ onRollComplete }) {
@@ -10,14 +9,33 @@ function Dice({ onRollComplete }) {
   const gltf = useLoader(GLTFLoader, "dicered.glb");
   const [isRolling, setIsRolling] = useState(false);
   const [time, setTime] = useState(0);
-  const [isBouncing, setIsBouncing] = useState(true); // New state to track bouncing
+  const [isBouncing, setIsBouncing] = useState(true);
+  const [targetFace, setTargetFace] = useState(1); // Default to face 1
+
+  // Define rotations for each dice face
+  const faceRotations = {
+    1: [0, 0, 0], // Front face
+    2: [Math.PI / 2, 0, 0], // Bottom face
+    3: [0, Math.PI / 2, 0], // Right face
+    4: [0, -Math.PI / 2, 0], // Left face
+    5: [-Math.PI / 2, 0, 0], // Top face
+    6: [Math.PI, 0, 0], // Back face
+  };
 
   const startRoll = () => {
     if (isRolling) return;
+    const randomFace = Math.floor(Math.random() * 6) + 1; // Random number between 1-6
+    setTargetFace(randomFace);
     setIsRolling(true);
-    setTime(0); // Reset time for new roll
-    setIsBouncing(true); // Reset bounce state
+    setTime(0);
+    setIsBouncing(true);
   };
+
+  useEffect(() => {
+    if (diceRef.current) {
+      diceRef.current.rotation.set(...faceRotations[targetFace]);
+    }
+  }, [targetFace]);
 
   useFrame((state, delta) => {
     if (isRolling && diceRef.current) {
@@ -33,13 +51,14 @@ function Dice({ onRollComplete }) {
         const bounceHeight = Math.sin(time * 4) * 0.1; // Reduce amplitude and increase frequency
         diceRef.current.position.y = 1.5 + bounceHeight;
       }
-if(rotationSpeed<200){
-  setIsBouncing(false);
-}
-      // Stop rolling and bouncing when speed is low
-      if (rotationSpeed < 1) {
+      if (rotationSpeed < 500) {
+        setIsBouncing(false);
+      }
+      // Stop rolling and set target face when speed is low
+      if (rotationSpeed < 300) {
         setIsRolling(false);
-        onRollComplete(); // Notify when roll is complete
+        diceRef.current.rotation.set(...faceRotations[targetFace]); // Snap to target face
+        onRollComplete(targetFace); // Notify the roll is complete with the result
       }
     }
   });
@@ -55,8 +74,8 @@ if(rotationSpeed<200){
 }
 
 function RollDice() {
-  const handleRollComplete = () => {
-    console.log("Roll complete!");
+  const handleRollComplete = (face) => {
+    console.log(`Roll complete! Result: ${face}`);
   };
 
   return (

@@ -26,11 +26,12 @@
   justify-content: center; /* Center content horizontally */
   align-items: center; /* Center content vertically */
   background-color: #ffffff; /* Background color for visibility */
-  width: 400px; /* Fixed width */
-  height: 900px; /* Fixed height */
+  width: 400px; 
+  height: 900px; 
   border: 2px solid #ccc; /* Optional border for clarity */
   border-radius: 10px; /* Rounded corners */
   margin: 50px;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .btnContainer{
